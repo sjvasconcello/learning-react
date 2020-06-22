@@ -1,42 +1,86 @@
 import React, { Component } from "react";
+import styled from "styled-components";
+import Link from "../components/Link/Link";
+import List from "../components/List/List";
+import "./Profile.css";
+
+const ProfileWrapper = styled.div`
+  width: 50%;
+  margin: 10px auto;
+`;
+
+const Avatar = styled.img`
+  width: 150px;
+  border-radius: 147px;
+  background: linear-gradient(145deg, #7c7878, #948e8e);
+  box-shadow: 5px 5px 10px #747070, -5px -5px 10px #a09a9a;
+`;
 
 class Profile extends Component {
   constructor() {
     super();
     this.state = {
       data: {},
+      repositories: [],
       loading: true,
+      error: "",
     };
   }
 
   async componentDidMount() {
-    const profile = await fetch("https://api.github.com/users/sjvasconcello");
-    const profileJSON = await profile.json();
+    try {
+      const profile = await fetch("https://api.github.com/users/sjvasconcello");
+      const profileJSON = await profile.json();
 
-    if (profileJSON) {
-      this.setState({
-        data: profileJSON,
+      if (profileJSON) {
+        const repositories = await fetch(profileJSON.repos_url);
+        const repositoriesJSON = await repositories.json();
+
+        this.setState({
+          data: profileJSON,
+          loading: false,
+          repositories: repositoriesJSON,
+        });
+      }
+    } catch (error) {
+      this.state({
         loading: false,
+        error: error.message,
       });
     }
   }
   render() {
-    const { data, loading } = this.state
-    if (loading) {
-        return <div>Loading...</div>
+    const { data, loading, repositories, error } = this.state;
+
+    const projects = repositories.map((repository) => ({
+      label: repository.name,
+      value: <Link url={repository.html_url} title="Github URL" />,
+    }));
+
+    if (loading||error) {
+      return <div>{loading ? "Loading...": error}</div>;
     }
-    return(
-        <ul>
-            <li>avatar_url: {data.avatar_url}</li>
-            <li>html_url: {data.html_url}</li>
-            <li>repos_url: {data.repos_url}</li>
-            <li>name: {data.name}</li>
-            <li>company: {data.company}</li>
-            <li>location: {data.location}</li>
-            <li>email: {data.email}</li>
-            <li>bio: {data.bio}</li>
-        </ul>
-    )
+    const items = [
+      {
+        label: "html_url",
+        value: <Link url={data.html_url} title="Github Url" />,
+      },
+      { label: "repos_url", value: data.repos_url },
+      { label: "name", value: data.name },
+      { label: "company", value: data.company },
+      { label: "location", value: data.location },
+      { label: "email", value: data.email },
+    ];
+
+    return (
+      <div>
+        <ProfileWrapper>
+          <Avatar src={data.avatar_url} alt="avatar" />
+          <List title="Profile" items={items} />
+          <List title="Projects" items={projects} />
+        </ProfileWrapper>
+      </div>
+    );
   }
 }
 
