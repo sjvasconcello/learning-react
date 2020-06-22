@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 
 const htmlPlugin = new HtmlWebPackPlugin({
@@ -11,7 +12,7 @@ module.exports = {
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        use: ['babel-loader'],
+        use: ['babel-loader',"eslint-loader"],
       },
       {
         test: /\.css$/,
