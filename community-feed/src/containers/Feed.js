@@ -3,6 +3,7 @@ import styled from "styled-components";
 import Card from "../components/Card/Card";
 import { Link } from "react-router-dom";
 import queryString from "query-string";
+import Helmet from "react-helmet";
 
 const FeedWrapper = styled.div`
   display: flex;
@@ -49,23 +50,25 @@ class Feed extends Component {
 
   componentDidMount() {
     const { page } = this.state;
-    this.fetchAPI(page)
-   
+    this.fetchAPI(page);
   }
 
   componentDidUpdate(prevProps) {
-    if(prevProps.location.search !== this.props.location.search) {
-      const query = queryString.parse(this.props.location.search)
-      this.setState({page: parseInt(query.page)}, () =>
+    if (prevProps.location.search !== this.props.location.search) {
+      const query = queryString.parse(this.props.location.search);
+      this.setState({ page: parseInt(query.page) }, () =>
         this.fetchAPI(this.state.page)
-      )
+      );
     }
   }
-  
 
   async fetchAPI(page) {
     try {
-      const data = await fetch(`${ROOT_API}questions?order=desc&sort=activity&tagged=reactjs&site=stackoverflow${page ? `&page=${page}` : ""}`);
+      const data = await fetch(
+        `${ROOT_API}questions?order=desc&sort=activity&tagged=reactjs&site=stackoverflow${
+          page ? `&page=${page}` : ""
+        }`
+      );
       const dataJSON = await data.json();
 
       if (dataJSON) {
@@ -82,14 +85,19 @@ class Feed extends Component {
     }
   }
 
-
   render() {
-    
     const { data, page, loading, error } = this.state;
     const { match } = this.props;
 
     if (loading || error) {
-      return <Alert>{loading ? "Loading..." : error}</Alert>;
+      return (
+        <>
+          <Helmet>
+            <title>Q&A Feed - Question</title>
+          </Helmet>
+          <Alert>{loading ? "Loading..." : error}</Alert>
+        </>
+      );
     }
 
     return (
@@ -103,10 +111,16 @@ class Feed extends Component {
           </CardLink>
         ))}
         <PaginationBar>
-     
-    {page > 1 && <PaginationLink to={`${match.url}?page=${page - 1}`}>Previous</PaginationLink>}
-    {data.has_more && <PaginationLink to={`${match.url}?page=${page + 1}`}>Next</PaginationLink>}
-
+          {page > 1 && (
+            <PaginationLink to={`${match.url}?page=${page - 1}`}>
+              Previous
+            </PaginationLink>
+          )}
+          {data.has_more && (
+            <PaginationLink to={`${match.url}?page=${page + 1}`}>
+              Next
+            </PaginationLink>
+          )}
         </PaginationBar>
       </FeedWrapper>
     );
