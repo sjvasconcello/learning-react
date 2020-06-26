@@ -1,8 +1,7 @@
-import React from 'react';
-import styled from 'styled-components';
-import withDataFetching from '../withDataFetching';
-import SubHeader from '../components/Header/SubHeader';
-import ListItem from '../components/ListItem/ListItem';
+import React from "react";
+import styled from "styled-components";
+import SubHeader from "../components/Header/SubHeader";
+import ListItem from "../components/ListItem/ListItem";
 
 const ListItemWrapper = styled.div`
   display: flex;
@@ -16,28 +15,41 @@ const Alert = styled.span`
   text-align: center;
 `;
 
-const List = ({ data, loading, error, match, history }) => {
-  const items =
-    data && data.filter(item => item.listId === parseInt(match.params.id));
+const List = ({
+  items,
+  loading,
+  error,
+  list,
+  getItemsRequest,
+  getListRequest,
+  match,
+  history,
+}) => {
+  React.useEffect(() => {
+    if (!list.id) {
+      getListRequest(match.params.id);
+    }
 
+    if (!items.length > 0) {
+      getItemsRequest(match.params.id);
+    }
+  }, [items, list, match.params.id, getItemsRequest, getListRequest]);
   return !loading && !error ? (
     <>
-      {history && (
+      {history && list && (
         <SubHeader
           goBack={() => history.goBack()}
           openForm={() => history.push(`${match.url}/new`)}
+          title={list.title}
         />
       )}
       <ListItemWrapper>
-        {items && items.map(item => <ListItem key={item.id} data={item} />)}
+        {items && items.map((item) => <ListItem key={item.id} data={item} />)}
       </ListItemWrapper>
     </>
   ) : (
-    <Alert>{loading ? 'Loading...' : error}</Alert>
+    <Alert>{loading ? "Loading..." : error}</Alert>
   );
 };
 
-export default withDataFetching({
-  dataSource:
-    'https://my-json-server.typicode.com/pranayfpackt/-React-Projects/items',
-})(List);
+export default List;
